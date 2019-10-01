@@ -1,4 +1,5 @@
 import random
+import matplotlib.pyplot as plt
 
 # stochastic learning automaton with stochastic environment
 # my automaton will be given a list of colors and will identify whether it falls under red, green, or blue
@@ -106,6 +107,12 @@ def main():
     iteration_count = 1
     # while largest_prob < 0.9:
     keep_going = True
+
+    # keep track of changing probabilities for graphing
+    red_prob_history = []
+    green_prob_history = []
+    blue_prob_history = []
+
     while keep_going:
         for color in color_set:
             action = learning_automaton.choose_action()
@@ -118,6 +125,10 @@ def main():
             for probability in learning_automaton.action_probs:
                 if probability > largest_prob:
                     largest_prob = probability
+
+            red_prob_history.append(learning_automaton.action_probs[0])
+            green_prob_history.append(learning_automaton.action_probs[1])
+            blue_prob_history.append(learning_automaton.action_probs[2])
 
             iteration_count += 1
             if iteration_count == 500:
@@ -133,6 +144,15 @@ def main():
           "Blue: ", learning_automaton.action_probs[2])
 
     print("The automaton took ", iteration_count, " iterations to complete.")
+
+    #plt.plot( 'x', 'red', data=red_prob_history,color='red')
+    #plt.legend()
+    plt.plot(red_prob_history, color='red')
+    plt.plot(blue_prob_history, color='blue')
+    plt.plot(green_prob_history, color='green')
+    plt.ylabel('Action Probability')
+    plt.xlabel('Iteration Count')
+    plt.title('Action probabilities over 500 iterations (step size = 0.1)')
 
 if __name__ == "__main__":
     main()
