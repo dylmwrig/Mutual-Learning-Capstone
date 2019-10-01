@@ -1,5 +1,4 @@
 import random
-import matplotlib.pyplot as plt
 
 # stochastic learning automaton with stochastic environment
 # my automaton will be given a list of colors and will identify whether it falls under red, green, or blue
@@ -79,10 +78,22 @@ class Environment:
 
         return 0
 
-def main():
-    random.seed = 0
+# run the algorithm 100 times with separate seeds, using the same step size in each
+# on convergence (highest action prob >= 0.9) record the winning action and whether or not it is the correct one (red)
+# find the percentage of times the algorithm came to the correct conclusion (accuracy)
+# also track how many iterations the algorithm took (speed of convergence)
+# repeat the entire experiment using step sizes: 0.01, 0.05, 0.1, 0.2, 0.5
+#
+# record findings in a table of step-size, accuracy, and speed of convergence
+#
+# expected results: when step size is increased:
+# --speed of convergence increases
+# --accuracy decreases
 
-    print("For each of the three automata (with different step sizes, ideally red should have the highest probability, with the next being green, and finally blue with the lowest.")
+
+def main():
+    experiment_count = 1
+    correct_choice = "red"
 
     # I'm not sure that this is necessary, but I kept it in to illustrate the idea that the LA should converge on red
     color_set = ["Scarlet", "Mahogany", "Vermilion", "Crimson",
@@ -90,30 +101,24 @@ def main():
                  "Prussian"]
     action_set = ["red", "green", "blue"]
     reward_probs = [0.8, 0.4, 0.2]
-    step_sizes = [0.1, 0.05, 0.01]
+    step_sizes = [0.01, 0.05, 0.1, 0.2, 0.5]
     step_size_iter = 0
 
-    # while step_size_iter < 3:
-    # initialize all action probabilities to be equal to each other
-    action_probs = [0.33, 0.33, 0.33]
-    # step_size = step_sizes[step_size_iter]
-    step_size = 0.1
-
-    learning_automaton = LearningAutomaton(action_set, action_probs, step_size)
     environment = Environment(reward_probs)
 
-    # continue execution until the largest action probability is 0.9
-    largest_prob = learning_automaton.action_probs[0]
-    iteration_count = 1
-    # while largest_prob < 0.9:
-    keep_going = True
 
-    # keep track of changing probabilities for graphing
-    red_prob_history = []
-    green_prob_history = []
-    blue_prob_history = []
 
-    while keep_going:
+    for step_size in step_sizes:
+
+        # initialize all action probabilities to be equal to each other
+        action_probs = [0.33, 0.33, 0.33]
+
+        # continue execution until the largest action probability is 0.9
+        largest_prob = action_probs[0]
+        iteration_count = 1
+
+        learning_automaton = LearningAutomaton(action_set, action_probs, step_size)
+
         for color in color_set:
             action = learning_automaton.choose_action()
             reward = environment.give_feedback(action)
@@ -125,10 +130,6 @@ def main():
             for probability in learning_automaton.action_probs:
                 if probability > largest_prob:
                     largest_prob = probability
-
-            red_prob_history.append(learning_automaton.action_probs[0])
-            green_prob_history.append(learning_automaton.action_probs[1])
-            blue_prob_history.append(learning_automaton.action_probs[2])
 
             iteration_count += 1
             if iteration_count == 500:
@@ -144,15 +145,6 @@ def main():
           "Blue: ", learning_automaton.action_probs[2])
 
     print("The automaton took ", iteration_count, " iterations to complete.")
-
-    #plt.plot( 'x', 'red', data=red_prob_history,color='red')
-    #plt.legend()
-    plt.plot(red_prob_history, color='red')
-    plt.plot(blue_prob_history, color='blue')
-    plt.plot(green_prob_history, color='green')
-    plt.ylabel('Action Probability')
-    plt.xlabel('Iteration Count')
-    plt.title('Action probabilities over 500 iterations (step size = 0.1)')
 
 if __name__ == "__main__":
     main()
