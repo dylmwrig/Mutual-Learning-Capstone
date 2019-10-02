@@ -1,4 +1,5 @@
 import random
+from pandas import DataFrame
 
 # stochastic learning automaton with stochastic environment
 # my automaton will be given a list of colors and will identify whether it falls under red, green, or blue
@@ -142,10 +143,12 @@ def main():
         iter_count_list.append(iteration_count/100)
         accuracy_list.append(correct_choice_count/iteration_count)
 
-    print(iter_count_list)
-    print(accuracy_list)
-
-    print("The automaton took ", iteration_count, " iterations to complete.")
+    TableData = {'Step Size': [0.01, 0.05, 0.1, 0.2, 0.5],
+                 'Accuracy': accuracy_list,
+                 'Speed of Convergence': iter_count_list}
+    df = DataFrame(TableData, columns = ['Step Size', 'Accuracy', 'Speed of Convergence'])
+    print(df)
+    df.to_csv(r'D:\School\Capstone\stochasticExperiment.csv', index=False)
 
 if __name__ == "__main__":
     main()
