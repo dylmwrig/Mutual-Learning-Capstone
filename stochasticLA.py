@@ -99,7 +99,7 @@ def main():
                  "Lime", "Emerald",
                  "Prussian"]
     action_set = ["red", "green", "blue"]
-    reward_probs = [0.8, 0.4, 0.2]
+    reward_probs = [0.8, 0.7, 0.2]
     step_sizes = [0.01, 0.05, 0.1, 0.2, 0.5]
 
     environment = Environment(reward_probs)
@@ -110,6 +110,7 @@ def main():
 
         correct_choice_count = 0
         run_count = 1
+        total_iteration_count = 0
 
         while (run_count < 101):
             random.seed(run_count * step_num)
@@ -139,20 +140,23 @@ def main():
                         if largest_prob >= 0.9:
                             if best_index == 0:
                                 correct_choice_count += 1
+                            print(probability)
 
                 iteration_count += 1
 
             run_count += 1
+            total_iteration_count += iteration_count
 
-        iter_count_list.append(iteration_count/100)
+        iter_count_list.append(total_iteration_count/100)
         accuracy_list.append(correct_choice_count/100)
+        input("hello0")
 
     TableData = {'Step Size': [0.01, 0.05, 0.1, 0.2, 0.5],
                  'Accuracy': accuracy_list,
                  'Speed of Convergence': iter_count_list}
     df = DataFrame(TableData, columns = ['Step Size', 'Accuracy', 'Speed of Convergence'])
     print(df)
-    df.to_csv(r'D:\School\Capstone\stochasticExperiment.csv', index=False)
+    df.to_csv(r'D:\School\Capstone\stochasticExperiment2.csv', index=False)
 
 if __name__ == "__main__":
     main()
