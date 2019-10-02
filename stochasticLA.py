@@ -110,10 +110,10 @@ def main():
 
         correct_choice_count = 0
         run_count = 1
-        iteration_count = 1
 
         while (run_count < 101):
             random.seed(run_count * step_num)
+            iteration_count = 1
 
             # initialize all action probabilities to be equal to each other
             action_probs = [0.33, 0.33, 0.33]
@@ -126,22 +126,26 @@ def main():
                 action = learning_automaton.choose_action()
                 reward = environment.give_feedback(action)
 
-                if (reward):
+                if reward:
                     learning_automaton.adjust_probs(action)
 
                 # update largest probability to break when one action has a probability of 0.9
                 for best_index, probability in enumerate(learning_automaton.action_probs):
                     if probability > largest_prob:
                         largest_prob = probability
-                        if best_index == 0:
-                            correct_choice_count += 1
+
+                        # determine if the automaton has finished
+                        # if it has, check if the correct action has the highest probability and record the result
+                        if largest_prob >= 0.9:
+                            if best_index == 0:
+                                correct_choice_count += 1
 
                 iteration_count += 1
 
             run_count += 1
 
         iter_count_list.append(iteration_count/100)
-        accuracy_list.append(correct_choice_count/iteration_count)
+        accuracy_list.append(correct_choice_count/100)
 
     TableData = {'Step Size': [0.01, 0.05, 0.1, 0.2, 0.5],
                  'Accuracy': accuracy_list,
