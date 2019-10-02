@@ -81,7 +81,7 @@ class Environment:
 # run the algorithm 100 times with separate seeds, using the same step size in each
 # on convergence (highest action prob >= 0.9) record the winning action and whether or not it is the correct one (red)
 # find the percentage of times the algorithm came to the correct conclusion (accuracy)
-# also track how many iterations the algorithm took (speed of convergence)
+# also track the average iteration count (speed of convergence)
 # repeat the entire experiment using step sizes: 0.01, 0.05, 0.1, 0.2, 0.5
 #
 # record findings in a table of step-size, accuracy, and speed of convergence
@@ -92,8 +92,6 @@ class Environment:
 
 
 def main():
-    experiment_count = 1
-    correct_choice = "red"
 
     # I'm not sure that this is necessary, but I kept it in to illustrate the idea that the LA should converge on red
     color_set = ["Scarlet", "Mahogany", "Vermilion", "Crimson",
@@ -102,47 +100,50 @@ def main():
     action_set = ["red", "green", "blue"]
     reward_probs = [0.8, 0.4, 0.2]
     step_sizes = [0.01, 0.05, 0.1, 0.2, 0.5]
-    step_size_iter = 0
 
     environment = Environment(reward_probs)
+    iter_count_list = []
+    accuracy_list = []
 
+    for step_num, step_size in enumerate(step_sizes):
 
-
-    for step_size in step_sizes:
-
-        # initialize all action probabilities to be equal to each other
-        action_probs = [0.33, 0.33, 0.33]
-
-        # continue execution until the largest action probability is 0.9
-        largest_prob = action_probs[0]
+        correct_choice_count = 0
+        run_count = 1
         iteration_count = 1
 
-        learning_automaton = LearningAutomaton(action_set, action_probs, step_size)
+        while (run_count < 101):
+            random.seed(run_count * step_num)
 
-        for color in color_set:
-            action = learning_automaton.choose_action()
-            reward = environment.give_feedback(action)
+            # initialize all action probabilities to be equal to each other
+            action_probs = [0.33, 0.33, 0.33]
 
-            if (reward):
-                learning_automaton.adjust_probs(action)
+            # continue execution until the largest action probability is 0.9
+            largest_prob = action_probs[0]
+            learning_automaton = LearningAutomaton(action_set, action_probs, step_size)
 
-            # update largest probability to break when one action has a probability of 0.9
-            for probability in learning_automaton.action_probs:
-                if probability > largest_prob:
-                    largest_prob = probability
+            while largest_prob < 0.9:
+                action = learning_automaton.choose_action()
+                reward = environment.give_feedback(action)
 
-            iteration_count += 1
-            if iteration_count == 500:
-                keep_going = False
-                break
+                if (reward):
+                    learning_automaton.adjust_probs(action)
 
-    step_size_iter += 1
+                # update largest probability to break when one action has a probability of 0.9
+                for best_index, probability in enumerate(learning_automaton.action_probs):
+                    if probability > largest_prob:
+                        largest_prob = probability
+                        if best_index == 0:
+                            correct_choice_count += 1
 
-    print("The automaton has finished. Here is the step size of the automaton and the finished action probabilities: ",
-          "Step size: ", learning_automaton.step_size,
-          "Red: ", learning_automaton.action_probs[0],
-          "Green: ", learning_automaton.action_probs[1],
-          "Blue: ", learning_automaton.action_probs[2])
+                iteration_count += 1
+
+            run_count += 1
+
+        iter_count_list.append(iteration_count/100)
+        accuracy_list.append(correct_choice_count/iteration_count)
+
+    print(iter_count_list)
+    print(accuracy_list)
 
     print("The automaton took ", iteration_count, " iterations to complete.")
 
