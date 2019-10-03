@@ -1,5 +1,7 @@
 import random
-from pandas import DataFrame
+from pandas import DataFrame # table compilation
+from operator import add # list addition using map
+import matplotlib.pyplot as plt # graphing
 
 # stochastic learning automaton with stochastic environment
 # my automaton will be given a list of colors and will identify whether it falls under red, green, or blue
@@ -38,23 +40,11 @@ class LearningAutomaton:
 
         old_prob = self.action_probs[reward_index]
         new_prob = old_prob + (self.step_size * (1 - old_prob))
-        prob_jump = new_prob - old_prob
-        prob_reduction = prob_jump / 2.0
-        negative_prob_index = -1 # initialize to negative one to flag when a negative probability is found
-
-        # if the probability becomes so low that it goes into the negative
-        # identify the other probability we are trying to reduce and reduce it by that amount again
-        # do not change the probability of the element which just tried to go into the negative
-        for index, prob in enumerate(self.action_probs):
-            if prob - prob_reduction < 0:
-                negative_prob_index = index
-                prob_reduction = prob_jump
-
         self.action_probs[reward_index] = new_prob
+
         for index,prob in enumerate(self.action_probs):
-            if index!=reward_index and index!=negative_prob_index:
-                reduced_prob = self.action_probs[index] - prob_reduction
-                self.action_probs[index] = reduced_prob
+            if index!=reward_index:
+                self.action_probs[index] = prob - (self.step_size * prob)
 
 # create stochastic environment
 # environment must have reward probabilities associated with each action
@@ -99,7 +89,7 @@ def main():
                  "Lime", "Emerald",
                  "Prussian"]
     action_set = ["red", "green", "blue"]
-    reward_probs = [0.8, 0.7, 0.2]
+    reward_probs = [0.8, 0.4, 0.2]
     step_sizes = [0.01, 0.05, 0.1, 0.2, 0.5]
 
     environment = Environment(reward_probs)
@@ -107,14 +97,22 @@ def main():
     accuracy_list = []
 
     for step_num, step_size in enumerate(step_sizes):
-
         correct_choice_count = 0
         run_count = 1
         total_iteration_count = 0
 
+        total_red_prob_hist = []
+        total_green_prob_hist = []
+        total_blue_prob_hist = []
+
         while (run_count < 101):
             random.seed(run_count * step_num)
             iteration_count = 1
+
+            # keep track of the current run's probability counts throughout iterations for graphing purposes
+            curr_red_prob_hist = []
+            curr_green_prob_hist = []
+            curr_blue_prob_hist = []
 
             # initialize all action probabilities to be equal to each other
             action_probs = [0.33, 0.33, 0.33]
@@ -140,23 +138,54 @@ def main():
                         if largest_prob >= 0.9:
                             if best_index == 0:
                                 correct_choice_count += 1
-                            print(probability)
 
                 iteration_count += 1
+
+                curr_red_prob_hist.append(learning_automaton.action_probs[0])
+                curr_green_prob_hist.append(learning_automaton.action_probs[1])
+                curr_blue_prob_hist.append(learning_automaton.action_probs[2])
+
+
+            # store the changes in action probabilities for this run
+            if run_count == 1:
+                total_red_prob_hist = curr_red_prob_hist
+                total_green_prob_hist = curr_green_prob_hist
+                total_blue_prob_hist = curr_blue_prob_hist
+
+            else:
+                total_red_prob_hist = list(map(add,total_red_prob_hist,curr_red_prob_hist))
+                total_green_prob_hist = list(map(add,total_green_prob_hist,curr_green_prob_hist))
+                total_blue_prob_hist = list(map(add,total_blue_prob_hist,curr_blue_prob_hist))
 
             run_count += 1
             total_iteration_count += iteration_count
 
         iter_count_list.append(total_iteration_count/100)
         accuracy_list.append(correct_choice_count/100)
-        input("hello0")
+
+        red_plot = [x / 100 for x in total_red_prob_hist]
+        green_plot = [x / 100 for x in total_green_prob_hist]
+        blue_plot = [x / 100 for x in total_blue_prob_hist]
+
+        plt.plot(red_plot, color='red')
+        plt.plot(blue_plot, color='blue')
+        plt.plot(green_plot, color='green')
+        plt.ylabel('Action Probability')
+        plt.xlabel('Iteration Count')
+        plot_title = "Action probabilities over", total_iteration_count / 100, "iterations, step size =", step_size
+        plt.title(plot_title)
+
+        file_name = 'plotPart1StepSizePart',str(step_num+1),'.png'
+        file_name = ''.join(file_name)
+        plt.savefig(file_name)
+        plt.clf()
 
     TableData = {'Step Size': [0.01, 0.05, 0.1, 0.2, 0.5],
                  'Accuracy': accuracy_list,
                  'Speed of Convergence': iter_count_list}
-    df = DataFrame(TableData, columns = ['Step Size', 'Accuracy', 'Speed of Convergence'])
+    df = DataFrame(TableData, columns=['Step Size', 'Accuracy', 'Speed of Convergence'])
     print(df)
-    df.to_csv(r'D:\School\Capstone\stochasticExperiment2.csv', index=False)
+    df.to_csv(r'D:\School\Capstone\stochasticExperiment1.csv', index=False)
 
 if __name__ == "__main__":
     main()
